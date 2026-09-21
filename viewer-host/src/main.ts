@@ -7,11 +7,13 @@ import {
   acedApplyUiTheme,
   AcEdOpenMode,
   eventBus,
+  layoutBackgroundColorFromRgb,
   LIBREDWG_PARSER_WORKER_FILE,
   MTEXT_RENDERER_WORKER_FILE
 } from '@mlightcad/cad-simple-viewer'
+import { AcDbSysVarManager } from '@mlightcad/data-model'
 
-import { parseQuery, toOpenMode } from './query'
+import { parseQuery } from './query'
 import { registerLibreDwgConverter } from './registerLibreDwg'
 
 const SAMPLE_DWG =
@@ -70,15 +72,16 @@ class ViewerHost {
     }
   }
 
-  private openMode(): AcEdOpenMode {
-    return toOpenMode(this.query.mode)
-  }
-
   private openOptions(): AcApOpenDatabaseOptions {
+    const white = layoutBackgroundColorFromRgb(0xffffff)
     return {
       minimumChunkSize: 1000,
-      mode: this.openMode(),
-      progressiveRendering: true
+      mode: AcEdOpenMode.Read,
+      progressiveRendering: true,
+      sysVars: {
+        modelbkcolor: white,
+        paperbkcolor: white
+      }
     }
   }
 
@@ -88,7 +91,7 @@ class ViewerHost {
     }
 
     try {
-      acedApplyUiTheme('dark', this.viewerPane)
+      acedApplyUiTheme('light', this.viewerPane)
       const dwgParserUrl = `./workers/${LIBREDWG_PARSER_WORKER_FILE}`
       registerLibreDwgConverter(dwgParserUrl)
       AcApDocManager.createInstance({
@@ -108,10 +111,18 @@ class ViewerHost {
       })
       await acuiRegisterSimpleUiPlugin(AcApDocManager.instance.pluginManager, {
         host: this.viewerPane,
+        layout: 'desktop',
         toolbar: {
           placement: 'right',
           items: 'default',
-          collapsible: true
+          collapsible: false
+        },
+        layouts: {
+          pad: {
+            toolbar: {
+              excludeItems: []
+            }
+          }
         },
         dockPanel: {
           defaultOpen: false
@@ -144,6 +155,7 @@ class ViewerHost {
       )
       if (success) {
         this.setStatus(file.name)
+        await this.afterOpen()
       }
     } catch (error) {
       this.setStatus(`Failed to open ${file.name}: ${error}`, 'error')
@@ -166,10 +178,29 @@ class ViewerHost {
       )
       if (success) {
         this.setStatus(fileNameFromUrl(url))
+        await this.afterOpen()
       }
     } catch (error) {
       this.setStatus(`Failed to open URL: ${error}`, 'error')
     }
+  }
+
+  private async afterOpen(): Promise<void> {
+    this.applyWhiteCanvas()
+    await AcApDocManager.instance.executeCommandString('pan')
+  }
+
+  private applyWhiteCanvas(): void {
+    const doc = AcApDocManager.instance.curDocument
+    const view = AcApDocManager.instance.curView
+    if (!doc || !view) {
+      return
+    }
+    const white = layoutBackgroundColorFromRgb(0xffffff)
+    const sys = AcDbSysVarManager.instance()
+    sys.setVar('modelbkcolor', white, doc.database)
+    sys.setVar('paperbkcolor', white, doc.database)
+    view.backgroundColor = 0xffffff
   }
 
   private setStatus(message: string, kind: 'info' | 'error' = 'info'): void {

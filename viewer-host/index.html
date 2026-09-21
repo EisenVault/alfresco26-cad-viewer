@@ -15,8 +15,8 @@
         height: 100%;
         overflow: hidden;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #111827;
-        color: #e5e7eb;
+        background: #ffffff;
+        color: #111827;
       }
       #app {
         display: flex;
@@ -29,8 +29,8 @@
         gap: 0.5rem;
         align-items: center;
         padding: 0.5rem 0.75rem;
-        background: #0f172a;
-        border-bottom: 1px solid #1f2937;
+        background: #f3f4f6;
+        border-bottom: 1px solid #d1d5db;
       }
       #chrome[hidden] {
         display: none;
@@ -39,8 +39,8 @@
       #chrome input[type='text'] {
         font: inherit;
         color: inherit;
-        background: #1f2937;
-        border: 1px solid #374151;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
         border-radius: 4px;
         padding: 0.35rem 0.6rem;
       }
@@ -52,15 +52,18 @@
         cursor: pointer;
       }
       #chrome button:hover {
-        background: #374151;
+        background: #e5e7eb;
       }
       #status {
         font-size: 0.8rem;
-        color: #9ca3af;
+        color: #4b5563;
         margin-left: auto;
       }
       #status[data-kind='error'] {
-        color: #fca5a5;
+        color: #b91c1c;
+      }
+      #browse-controls {
+        display: contents;
       }
       #viewer-pane {
         position: relative;
@@ -76,11 +79,13 @@
   <body>
     <div id="app">
       <div id="chrome">
-        <button id="open-file" type="button">Open file</button>
-        <input id="file-input" type="file" accept=".dwg,.dxf,application/dxf,image/vnd.dwg" hidden />
-        <input id="url-input" type="text" placeholder="https://…/drawing.dwg" />
-        <button id="open-url" type="button">Open URL</button>
-        <button id="open-sample" type="button">Sample DWG</button>
+        <span id="browse-controls">
+          <button id="open-file" type="button">Open file</button>
+          <input id="file-input" type="file" accept=".dwg,.dxf,application/dxf,image/vnd.dwg" hidden />
+          <input id="url-input" type="text" placeholder="https://…/drawing.dwg" />
+          <button id="open-url" type="button">Open URL</button>
+          <button id="open-sample" type="button">Sample DWG</button>
+        </span>
         <span id="status">Open a DWG or DXF</span>
       </div>
       <div id="viewer-pane">
