@@ -20,6 +20,13 @@ alf_data_dev/
 node_modules/
 viewer-host/dist/
 
+# Share YUI compressor output when module resources are live-mounted
+**/CadViewer.min.js
+**/CadViewer-min.min.js
+**/cad-viewer.min.css
+**/cad-viewer-min.min.css
+**/TemplateWidget.min.js
+
 # Eclipse
 .metadata
 .project

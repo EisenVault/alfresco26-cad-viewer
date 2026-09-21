@@ -1,0 +1,15 @@
+<extension>
+  <modules>
+    <module>
+      <id>alfresco26-cad-viewer-share - CAD WebPreview</id>
+      <version>1.0</version>
+      <auto-deploy>true</auto-deploy>
+      <customizations>
+        <customization>
+          <targetPackageRoot>org.alfresco.components.preview</targetPackageRoot>
+          <sourcePackageRoot>org.alfresco.extension.cadviewer.components.preview</sourcePackageRoot>
+        </customization>
+      </customizations>
+    </module>
+  </modules>
+</extension>

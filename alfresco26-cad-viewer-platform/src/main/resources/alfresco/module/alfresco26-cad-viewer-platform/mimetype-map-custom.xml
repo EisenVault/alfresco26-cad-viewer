@@ -1,0 +1,12 @@
+<alfresco-config area="mimetype-map">
+  <config evaluator="string-compare" condition="Mimetype Map">
+    <mimetypes>
+      <mimetype mimetype="image/vnd.dwg" display="AutoCAD Drawing">
+        <extension>dwg</extension>
+      </mimetype>
+      <mimetype mimetype="image/vnd.dxf" display="AutoCAD DXF">
+        <extension>dxf</extension>
+      </mimetype>
+    </mimetypes>
+  </config>
+</alfresco-config>

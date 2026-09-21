@@ -5,15 +5,15 @@ Share preview and DXF editing for DWG/DXF on **Alfresco Content Services 26.1**.
 This repository is an Alfresco SDK 4.14 All-in-One project. It produces:
 
 - `viewer-host` — Vite app that Share will iframe (cad-simple-viewer + LibreDWG)
-- `alfresco26-cad-viewer-platform` — Repository AMP (not wired yet)
-- `alfresco26-cad-viewer-share` — Share AMP (not wired yet)
+- `alfresco26-cad-viewer-platform` — Repository AMP (DWG/DXF MIME types; lock/save not wired yet)
+- `alfresco26-cad-viewer-share` — Share AMP (document-details CAD preview)
 - Docker modules for local ACS/Share (optional)
 
 The CAD engine is [cad-viewer](https://github.com/mlightcad/cad-viewer). DWG parse uses LibreDWG via `@mlightcad/libredwg-converter`. Share/repo wiring will follow the OnlyOffice Alfresco Share AMP pattern (preview plugin + DocLib action + repo webscripts), without Document Server.
 
 ## Status
 
-Viewer host can open a local DWG/DXF or a URL. Share WebPreviewer plugin and lock/save webscripts are not implemented yet. SDK sample modules are still in the AMPs.
+Share document-details preview iframes `viewer-host` for DWG/DXF (`mode=read&chrome=0`). Lock/save webscripts and the DocLib Edit DXF action are not implemented yet. SDK sample modules are still in the AMPs.
 
 ## Requirements
 
@@ -32,7 +32,7 @@ npm run dev
 
 Open the printed URL. Use **Open file**, paste a drawing URL, or **Sample DWG**.
 
-Query parameters (for the future Share iframe):
+Query parameters (Share iframe uses these):
 
 | Param | Default | Meaning |
 |-------|---------|---------|
@@ -46,7 +46,13 @@ Example:
 http://localhost:5173/?url=https://example.com/plan.dwg&mode=read&chrome=0
 ```
 
-Production build: `npm run build` → `viewer-host/dist/`.
+Production build: `npm run build` → `viewer-host/dist/`. Share `mvn package` runs this and copies `dist` into the Share JAR at `/share/res/alfresco26-cad-viewer-share/viewer/`.
+
+## Share CAD preview
+
+On document-details, WebPreviewer chooses `CadViewer` for DWG/DXF MIME types (and for `.dwg`/`.dxf` filenames if the MIME was stored as something else). The plugin iframes the packed viewer with the node's Share-proxy content URL.
+
+After you deploy the AMPs, upload a `.dwg` or `.dxf` and open it in document details. pdf.js is unchanged for PDFs.
 
 ## Build AMPs
 
