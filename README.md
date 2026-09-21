@@ -4,21 +4,49 @@ Share preview and DXF editing for DWG/DXF on **Alfresco Content Services 26.1**.
 
 This repository is an Alfresco SDK 4.14 All-in-One project. It produces:
 
-- `alfresco26-cad-viewer-platform` — Repository AMP
-- `alfresco26-cad-viewer-share` — Share AMP
+- `viewer-host` — Vite app that Share will iframe (cad-simple-viewer + LibreDWG)
+- `alfresco26-cad-viewer-platform` — Repository AMP (not wired yet)
+- `alfresco26-cad-viewer-share` — Share AMP (not wired yet)
 - Docker modules for local ACS/Share (optional)
 
-The CAD engine is not written here. The browser viewer will be [cad-viewer](https://github.com/mlightcad/cad-viewer). DWG parse uses LibreDWG via `@mlightcad/libredwg-converter`. Share/repo wiring follows the OnlyOffice Alfresco Share AMP pattern (preview plugin + DocLib action + repo webscripts), without Document Server.
+The CAD engine is [cad-viewer](https://github.com/mlightcad/cad-viewer). DWG parse uses LibreDWG via `@mlightcad/libredwg-converter`. Share/repo wiring will follow the OnlyOffice Alfresco Share AMP pattern (preview plugin + DocLib action + repo webscripts), without Document Server.
 
 ## Status
 
-Scaffold only. SDK sample modules are still in place. Viewer host, WebPreviewer plugin, and lock/save webscripts are not implemented yet.
+Viewer host can open a local DWG/DXF or a URL. Share WebPreviewer plugin and lock/save webscripts are not implemented yet. SDK sample modules are still in the AMPs.
 
 ## Requirements
 
 - JDK 21 (`jenv local` is set to `21.0.12.1`)
+- Node.js 20+
 - Maven 3.3+
 - Docker (only if you use `./run.sh`)
+
+## Viewer host
+
+```sh
+cd viewer-host
+npm install
+npm run dev
+```
+
+Open the printed URL. Use **Open file**, paste a drawing URL, or **Sample DWG**.
+
+Query parameters (for the future Share iframe):
+
+| Param | Default | Meaning |
+|-------|---------|---------|
+| `url` | (none) | Fetch and open this DWG/DXF |
+| `mode` | `read` | `read`, `review`, or `write` |
+| `chrome` | `1` | `0` hides the open-file bar |
+
+Example:
+
+```
+http://localhost:5173/?url=https://example.com/plan.dwg&mode=read&chrome=0
+```
+
+Production build: `npm run build` → `viewer-host/dist/`.
 
 ## Build AMPs
 
@@ -49,7 +77,7 @@ MIT and Apache-2.0 dependencies listed below remain under their own licenses and
 |--------|-------------|---------|-----|
 | Alfresco SDK 4.14 All-in-One archetype | Project layout, AMP assembly, Docker run scripts, sample module files | Apache License 2.0 | https://github.com/Alfresco/alfresco-sdk |
 | Alfresco Content Services / Share 26.1 | Compile-time APIs (`provided` scope); runtime WARs/images | Alfresco Community / product licenses | https://github.com/Alfresco/acs-community-packaging |
-| cad-viewer (`@mlightcad/cad-simple-viewer` and related packages) | Browser DWG/DXF view and DXF edit | MIT | https://github.com/mlightcad/cad-viewer |
+| cad-viewer (`@mlightcad/cad-simple-viewer`, `cad-simple-ui-plugin`, `three-renderer`) | Browser DWG/DXF view and DXF edit; `viewer-host` host pattern follows `cad-simple-viewer-example` | MIT | https://github.com/mlightcad/cad-viewer |
 | LibreDWG / `@mlightcad/libredwg-converter` | In-browser DWG parse (WASM worker) | GPL-3.0 | https://github.com/LibreDWG/libredwg · https://www.npmjs.com/package/@mlightcad/libredwg-converter |
 | ONLYOFFICE Alfresco Share + repo AMPs | Integration pattern only (WebPreviewer plugin, DocLib action, prepare/lock/version webscripts). No OnlyOffice source is copied. Not Document Server. | GPL-3.0 | https://github.com/ONLYOFFICE/onlyoffice-alfresco |
 

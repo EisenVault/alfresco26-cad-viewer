@@ -16,6 +16,10 @@ buildNumber.properties
 # SDK local runtime
 alf_data_dev/
 
+# Node / viewer-host
+node_modules/
+viewer-host/dist/
+
 # Eclipse
 .metadata
 .project
