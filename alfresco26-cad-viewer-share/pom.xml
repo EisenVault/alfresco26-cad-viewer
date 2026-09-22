@@ -87,7 +87,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/alfresco26-cad-viewer-share/viewer</outputDirectory>
+                            <outputDirectory>${project.build.directory}/cad-viewer-web/alfresco26-cad-viewer-share/viewer</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.parent.basedir}/viewer-host/dist</directory>

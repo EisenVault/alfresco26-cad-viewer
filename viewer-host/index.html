@@ -78,7 +78,7 @@
   </head>
   <body>
     <div id="app">
-      <div id="chrome">
+      <div id="chrome" hidden>
         <span id="browse-controls">
           <button id="open-file" type="button">Open file</button>
           <input id="file-input" type="file" accept=".dwg,.dxf,application/dxf,image/vnd.dwg" hidden />
@@ -86,7 +86,7 @@
           <button id="open-url" type="button">Open URL</button>
           <button id="open-sample" type="button">Sample DWG</button>
         </span>
-        <span id="status">Open a DWG or DXF</span>
+        <span id="status">Loading CAD preview...</span>
       </div>
       <div id="viewer-pane">
         <div id="cad-container"></div>

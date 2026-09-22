@@ -52,6 +52,11 @@
                 <exclude>README.md</exclude>
             </excludes>
         </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/cad-viewer-web</directory>
+            <outputDirectory>web</outputDirectory>
+            <filtered>false</filtered>
+        </fileSet>
     </fileSets>
 
     <!-- Include the project artifact (JAR) in the /lib directory in the AMP, and any 3rd party libraries (JARs)

@@ -6,6 +6,7 @@ import {
   AcApOpenDatabaseOptions,
   acedApplyUiTheme,
   AcEdOpenMode,
+  AcEdViewMode,
   eventBus,
   layoutBackgroundColorFromRgb,
   LIBREDWG_PARSER_WORKER_FILE,
@@ -20,6 +21,16 @@ const SAMPLE_DWG =
   'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/data/canteen.dwg'
 
 const FONT_BASE_URL = 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data@main/'
+
+/** Export/download commands blocked when Share passes download=0 (SiteViewer). */
+const BLOCKED_EXPORT_COMMANDS = new Set([
+  'chtml',
+  '-chtml',
+  'cpdf',
+  'csvg',
+  'measurementexport',
+  'markupexport'
+])
 
 class ViewerHost {
   private readonly container: HTMLDivElement
@@ -39,7 +50,12 @@ class ViewerHost {
     this.urlInput = document.getElementById('url-input') as HTMLInputElement
     this.status = document.getElementById('status') as HTMLElement
 
-    if (!this.query.chrome) {
+    if (this.query.chrome) {
+      this.chrome.hidden = false
+      if (!this.query.url) {
+        this.setStatus('Open a DWG or DXF')
+      }
+    } else {
       this.chrome.hidden = true
     }
 
@@ -109,18 +125,20 @@ class ViewerHost {
       eventBus.on('failed-to-open-file', (params: AcApOpenFileErrorParams) => {
         this.setStatus(acapFormatOpenFileErrorMessage(params), 'error')
       })
+      const excludeExport = this.query.download ? [] : ['export']
       await acuiRegisterSimpleUiPlugin(AcApDocManager.instance.pluginManager, {
         host: this.viewerPane,
         layout: 'desktop',
         toolbar: {
           placement: 'right',
           items: 'default',
-          collapsible: false
+          collapsible: false,
+          excludeItems: excludeExport
         },
         layouts: {
           pad: {
             toolbar: {
-              excludeItems: []
+              excludeItems: excludeExport
             }
           }
         },
@@ -128,6 +146,9 @@ class ViewerHost {
           defaultOpen: false
         }
       })
+      if (!this.query.download) {
+        this.blockExportCommands()
+      }
       this.initialized = true
       return true
     } catch (error) {
@@ -171,23 +192,39 @@ class ViewerHost {
       return
     }
     this.setStatus(`Opening ${url}…`)
+    let success = false
     try {
-      const success = await AcApDocManager.instance.openUrl(
-        url,
-        this.openOptions()
-      )
-      if (success) {
-        this.setStatus(fileNameFromUrl(url))
-        await this.afterOpen()
-      }
+      success = await AcApDocManager.instance.openUrl(url, this.openOptions())
     } catch (error) {
-      this.setStatus(`Failed to open URL: ${error}`, 'error')
+      success = !!AcApDocManager.instance.curDocument
+      if (!success) {
+        this.setStatus(`Failed to open URL: ${error}`, 'error')
+        return
+      }
+    }
+    if (success) {
+      this.setStatus(fileNameFromUrl(url))
+      await this.afterOpen()
     }
   }
 
   private async afterOpen(): Promise<void> {
     this.applyWhiteCanvas()
-    await AcApDocManager.instance.executeCommandString('pan')
+    const view = AcApDocManager.instance.curView
+    if (!view) {
+      return
+    }
+    const applyPan = () => {
+      try {
+        view.mode = AcEdViewMode.PAN
+      } catch {
+        // Layout view is created after converted entities land.
+      }
+    }
+    applyPan()
+    if (typeof view.waitUntilIdle === 'function') {
+      void view.waitUntilIdle(60000).then(applyPan)
+    }
   }
 
   private applyWhiteCanvas(): void {
@@ -201,6 +238,22 @@ class ViewerHost {
     sys.setVar('modelbkcolor', white, doc.database)
     sys.setVar('paperbkcolor', white, doc.database)
     view.backgroundColor = 0xffffff
+  }
+
+  private blockExportCommands(): void {
+    const docManager = AcApDocManager.instance
+    const original = docManager.executeCommandString.bind(docManager)
+    docManager.executeCommandString = async (cmdStr: string) => {
+      const name = cmdStr.trim().split(/[\s\n]+/)[0]?.toLowerCase() ?? ''
+      if (BLOCKED_EXPORT_COMMANDS.has(name)) {
+        this.setStatus(
+          'Export is not available for your access level',
+          'error'
+        )
+        return
+      }
+      return original(cmdStr)
+    }
   }
 
   private setStatus(message: string, kind: 'info' | 'error' = 'info'): void {

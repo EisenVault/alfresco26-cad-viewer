@@ -1,6 +1,6 @@
 # Alfresco 26.1 CAD Viewer
 
-Share preview for DWG/DXF on **Alfresco Content Services 26.1**. Replaces pdf.js in the document-details pane for CAD MIME types. Preview is view-only (white canvas, pan and select).
+Share preview for DWG/DXF on **Alfresco Content Services 26.1**. Replaces pdf.js in the document-details pane for CAD MIME types. Preview is view-only (white canvas, pan and select). SiteViewer sessions hide Export (`download=0`); write-capable roles keep Export (`download=1`).
 
 This repository is an Alfresco SDK 4.14 All-in-One project. It produces:
 
@@ -11,9 +11,11 @@ This repository is an Alfresco SDK 4.14 All-in-One project. It produces:
 
 The CAD engine is [cad-viewer](https://github.com/mlightcad/cad-viewer). DWG parse uses LibreDWG via `@mlightcad/libredwg-converter`. Share wiring follows the OnlyOffice Alfresco Share AMP preview-plugin pattern, without Document Server and without edit/lock.
 
+Packaged copies for EisenVault ACS 26.1 installs live in `ev-basecode-5.2/ev-install-package/repo-amps` and `share-amps`. Installer and UAT notes are in `ev-basecode-5.2/installation-requirements.md` and `acs26_migration_uat_test_plan.xlsx` (`CV-01`–`CV-08`).
+
 ## Status
 
-Share document-details preview iframes `viewer-host` for DWG/DXF (`chrome=0`). The canvas is white; pan is the default tool. SDK sample modules are still in the AMPs.
+Share document-details preview iframes packed `viewer-host` for DWG/DXF (`chrome=0`). Static assets are served from AMP `web/` at `/share/alfresco26-cad-viewer-share/viewer/` (not `/share/res/`). The canvas is white; pan is the default tool. CadViewer passes `download=0|1` from node `userPermissions` (fail-closed). Verified on alfresco26 for display and SiteViewer Export gating (22 September 2026).
 
 ## Requirements
 
@@ -38,20 +40,22 @@ Query parameters (Share iframe uses these):
 |-------|---------|---------|
 | `url` | (none) | Fetch and open this DWG/DXF |
 | `chrome` | `1` | `0` hides the open-file bar |
+| `download` | `1` (unless `download=0`) | `0` hides Export and blocks export CLI commands (SiteViewer) |
+| `mode` | `read` | Open mode passed through to the viewer |
 
 Example:
 
 ```
-http://localhost:5173/?url=https://example.com/plan.dwg&chrome=0
+http://localhost:5173/?url=https://example.com/plan.dwg&chrome=0&download=1
 ```
 
-Production build: `npm run build` → `viewer-host/dist/`. Share `mvn package` runs this and copies `dist` into the Share JAR at `/share/res/alfresco26-cad-viewer-share/viewer/`.
+Production build: `npm run build` → `viewer-host/dist/`. Share `mvn package` runs this and copies `dist` into the Share AMP `web/alfresco26-cad-viewer-share/viewer/` tree.
 
 ## Share CAD preview
 
-On document-details, WebPreviewer chooses `CadViewer` for DWG/DXF MIME types (and for `.dwg`/`.dxf` filenames if the MIME was stored as something else). The plugin iframes the packed viewer with the node's Share-proxy content URL.
+On document-details, WebPreviewer chooses `CadViewer` for DWG/DXF MIME types (and for `.dwg`/`.dxf` filenames if the MIME was stored as something else). The plugin iframes the packed viewer with the node's Share-proxy content URL and `download=0|1` from `_hasDownloadAccess` (`Download` / `DownloadContent`, else Write / CreateChildren / Delete / ChangePermissions; missing permissions → `0`).
 
-After you deploy the AMPs, upload a `.dwg` or `.dxf` and open it in document details. pdf.js is unchanged for PDFs.
+After you deploy the AMPs, upload a `.dwg` or `.dxf` and open it in document details. pdf.js is unchanged for PDFs. SiteViewer must not see Export; Collaborator/admin must.
 
 The platform AMP is optional for preview itself (Share loads content through the existing node content API). Keep it so uploads map `.dwg`/`.dxf` to the MIME types the preview plugin matches.
 
@@ -67,6 +71,8 @@ Artifacts:
 - `alfresco26-cad-viewer-share/target/alfresco26-cad-viewer-share-1.0.0-SNAPSHOT.amp`
 
 Target platform: ACS Community **26.1.0**, Share **26.1.0.45**.
+
+Deploy with `bin/apply_amps.sh -force`, restore `evadm:evadm`, and if same-version Share reinstall 404s hashed assets, remove exploded `tomcat/webapps/share` and restart.
 
 ## License
 
