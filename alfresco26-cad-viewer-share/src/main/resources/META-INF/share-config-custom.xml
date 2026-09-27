@@ -34,26 +34,9 @@
         </types>
     </config>
 
-    <!--================================================================================================================
-          Advanced Search Forms for types
-          (search forms for aspects are not available)
-      =============================================================================================================-->
-
-    <config evaluator="string-compare" condition="AdvancedSearch" replace="true">
-        <advanced-search>
-            <forms>
-                <!-- Standard out-of-the-box types -->
-                <form labelId="search.form.label.cm_content" descriptionId="search.form.desc.cm_content">cm:content
-                </form>
-                <form labelId="search.form.label.cm_folder" descriptionId="search.form.desc.cm_folder">cm:folder</form>
-
-                <!-- Custom type -->
-                <form labelId="form.label.advancedsearch.acmeDocument"
-                      descriptionId="form.description.advancedsearch.acmeDocument">acme:document
-                </form>
-            </forms>
-        </advanced-search>
-    </config>
+    <!-- Advanced Search must not use replace="true". Doing so after ev-share
+         is applied removes EisenVault search forms (DMS Document, Contract,
+         Agreements, etc.). Leave Advanced Search to stock + ev-share + PDF Toolkit. -->
 
     <!--================================================================================================================
          View, Edit, Create, and Search forms for custom types
